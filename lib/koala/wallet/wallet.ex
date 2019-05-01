@@ -3,11 +3,7 @@ defmodule Koala.Wallet do
 ##I need to make the seed atribute private to this file if possible
 ##Also correct enforement
   @enforce_keys [:name, :seed]
-  @nucleous_wallet "genes"
-  @genesis_address "xrb_1ernxghpo7kyhc6icokqhy5itbkez11e3u3k5utmepjpx97wsqi6pyq134ir"
-  ## aws xrb_1ernxghpo7kyhc6icokqhy5itbkez11e3u3k5utmepjpx97wsqi6pyq134ir
 
-  ##local xrb_1qzfp3op48im348qdybmrheu9dogtopj1jyioguq9pyo5i7mkqgo4jaswp4a
   use GenServer
   use Tesla
 
@@ -111,7 +107,7 @@ defmodule Koala.Wallet do
       |> GenServer.call({:send_nano, recipient, from_address, amount})
   end
 
-  def send_all_nano(wallet_name, recipient, from_address\\ @genesis_address) do
+  def send_all_nano(wallet_name, recipient, from_address) do
      case Koala.Wallet.Data.fronteir(from_address) do
 
        nil ->
@@ -138,39 +134,6 @@ defmodule Koala.Wallet do
       end
   end
 
-  ##50chx -500000000000000000000000000
-  defp calc_nano_to_send(size) do
-    cond do
-      size == {10, 20} ->
-        size = 1000000000000000000000000000 ## 5 chx max for each user if they make it their main cell
-      size == {20, 40} ->
-        size = 2000000000000000000000000000 ## 5 chx max for each user if they make it their main cell
-      size == {40, 120} ->
-        size = 4800000000000000000000000000 ## 4 chx max for each user if they make it their main cell
-      size == {80, 360} ->
-        size = 10800000000000000000000000000 ## 3 chx max for each user if they make it their main cell
-      size == {160, 1080} ->
-        size = 32400000000000000000000000000 ## 3 chx max for each user if they make it their main cell
-      size == {320, 1800} ->
-        size = 36000000000000000000000000000 ## 2 chx max for each user if they make it their main cell
-      size == {640, 9999} ->
-        size = 50000000000000000000000000000 ## 2 chx max for each user if they make it their main cell
-
-
-    end
-  end
-
-  def send_newuser_nano(recipient, amount \\ 500000000000000000000000000) do
-
-    String.to_atom(@nucleous_wallet |> String.capitalize)
-      |> GenServer.call({:send_initial_nano, recipient, @genesis_address, amount})
-  end
-
-  def send_initial_nano(size, recipient) do
-
-    String.to_atom(@nucleous_wallet |> String.capitalize)
-      |> GenServer.call({:send_initial_nano, recipient, @genesis_address, calc_nano_to_send(size)})
-  end
 
   def get_wallet_id(wallet_name), do: String.to_atom(wallet_name |> String.capitalize) |> GenServer.call({:get_wallet_id})
 
@@ -432,7 +395,7 @@ defmodule Koala.Wallet do
 
   end
 
-  def endd(name) do
+  def end(name) do
     name = name |> String.capitalize |> String.to_atom
 
     pid = Process.whereis(name)
