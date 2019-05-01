@@ -395,7 +395,7 @@ defmodule Koala.Wallet do
 
   end
 
-  def end(name) do
+  def end_name(name) do
     name = name |> String.capitalize |> String.to_atom
 
     pid = Process.whereis(name)
