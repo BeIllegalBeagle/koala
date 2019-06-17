@@ -11,31 +11,19 @@ defmodule Koala.WalletTest do
   @wallet_name Test_Wallet
 
   setup do
-    {:ok, state} = Koala.Wallet.start_link(wallet_id: @wallet_name, seed: @seed)
-    %{pid: state}
+    # {:ok, state} = Koala.Interface.(wallet_id: @wallet_name, seed: @seed)
+    # %{pid: state}
   end
 
-  test "getting wallet keys from seed and nonce 0" do
-    assert {@private_key, @public_key} == Koala.Wallet.new_account(@wallet_name, @seed)
-  end
+  # test "getting wallet keys from seed and nonce 0" do
+  #   assert {@private_key, @public_key} == Koala.Wallet.new_account(@wallet_name, @seed)
+  # end
+  #
+  # test "checking if seed is stored successfully in file" do
+  #   name_to_string = String.slice(to_string(@wallet_name), 7..-1)
+  #   assert :ok = Koala.Interface.new_wallet_seed(name_to_string, @koala_password)
+  # end
 
-  test "checking if seed is stored successfully in file" do
-    name_to_string = String.slice(to_string(@wallet_name), 7..-1)
-    assert :ok = Koala.Interface.new_wallet_seed(name_to_string, @koala_password)
-  end
-
-  test "opening account with canoe" do
-    assert Koala.Wallet.open_account(What, @public_key)
-    # IO.inspect Koala.Canoe.new_account(, @koala_password, )
-  end
-
-  test "signing recieve block" do
-
-  end
-
-  test "signing send block" do
-
-  end
 
 
 end

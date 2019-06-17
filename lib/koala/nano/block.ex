@@ -18,7 +18,7 @@ defmodule Koala.Nano.Block do
 
   ## Send a block
 
-      alias RaiEx.{Block, Tools}
+      alias Nano.{Block, Tools}
 
       seed = "9F1D53E732E48F25F94711D5B22086778278624F715D9B2BEC8FB81134E7C904"
 
@@ -29,7 +29,7 @@ defmodule Koala.Nano.Block do
       address = Tools.create_account!(pub)
 
       # Get the previous block hash
-      {:ok, %{"frontier" => block_hash}} = RaiEx.account_info(address)
+      {:ok, %{"frontier" => block_hash}} = Nano.account_info(address)
 
       # Somewhat counterintuitively 'balance' refers to the new balance not the
       # amount to be sent
@@ -48,7 +48,7 @@ defmodule Koala.Nano.Block do
 
   ## Receive the most recent pending block
 
-      alias RaiEx.{Block, Tools}
+      alias Nano.{Block, Tools}
 
       seed = "9F1D53E732E48F25F94711D5B22086778278624F715D9B2BEC8FB81134E7C904"
 
@@ -58,8 +58,8 @@ defmodule Koala.Nano.Block do
       # Derives an "xrb_" account
       account = Tools.create_account!(pub)
 
-      {:ok, %{"blocks" => [block_hash]}} = RaiEx.pending(account, 1)
-      {:ok, %{"frontier" => frontier}} = RaiEx.account_info(account)
+      {:ok, %{"blocks" => [block_hash]}} = Nano.pending(account, 1)
+      {:ok, %{"frontier" => frontier}} = Nano.account_info(account)
 
       block = %Block{
         type: "receive",
@@ -71,8 +71,6 @@ defmodule Koala.Nano.Block do
 
   ## Open an account
 
-      alias RaiEx.{Block, Tools}
-
       seed = "9F1D53E732E48F25F94711D5B22086778278624F715D9B2BEC8FB81134E7C904"
       representative = "xrb_3arg3asgtigae3xckabaaewkx3bzsh7nwz7jkmjos79ihyaxwphhm6qgjps4"
 
@@ -83,7 +81,7 @@ defmodule Koala.Nano.Block do
       existing_account = Tools.create_account!(pub_existing)
       new_account = Tools.create_account!(pub_new)
 
-      {:ok, %{"frontier" => block_hash, "balance" => balance}} = RaiEx.account_info(existing_account)
+      {:ok, %{"frontier" => block_hash, "balance" => balance}} = Nano.account_info(existing_account)
 
       # Convert to number
       {balance, ""} = Integer.parse(balance)
@@ -207,12 +205,7 @@ defmodule Koala.Nano.Block do
 
     signature = Ed25519.signature(hash, priv_key, pub_key)
     %{block | hash: Base.encode16(hash), signature: Base.encode16(signature)}
-    
-    # %{block |
-    #   balance: Base.encode16(<<balance::size(128)>>),
-    #   hash: Base.encode16(hash),
-    #   signature: Base.encode16(signature)
-    # }
+
   end
 
   @doc """
@@ -230,8 +223,6 @@ defmodule Koala.Nano.Block do
 
     [priv_key, pub_key, source_block, previous, preamble, balance] =
       if_string_hex_to_binary([priv_key, pub_key, source_block, previous, @preamble, balance])
-      # {:ok, balance} = Koala.Nano.Tools.raw_to_units(String.to_integer(balance), :MXRB)
-      # balance = Decimal.to_float(balance)
 
     hash = Blake2.hash2b(
       preamble <>

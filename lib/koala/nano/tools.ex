@@ -24,18 +24,25 @@ defmodule Koala.Nano.Tools do
     uXRB: 1_000_000_000_000_000_000
   ]
 
-   @prev_open "0000000000000000000000000000000000000000000000000000000000000000"
+  @prev_open "0000000000000000000000000000000000000000000000000000000000000000"
+
   @doc """
-  Generates a wallet seed.
+    Generates a wallet seed.
   """
   def seed do
     :crypto.strong_rand_bytes(32)
   end
 
+  @doc """
+    Generates an id to used for Canoe.
+  """
   def mqtt_id do
     Base.encode16(:crypto.strong_rand_bytes(6))
   end
 
+  @doc """
+    Generates a longer token to used for Canoe
+  """
   def mqtt_token do
     Base.url_encode64(:crypto.strong_rand_bytes(48))
   end
@@ -86,7 +93,7 @@ defmodule Koala.Nano.Tools do
   end
 
   @doc """
-  Converts various RaiBlocks units to raw units.
+    Converts various RaiBlocks units to raw units.
   """
   def units_to_raw(amount, unit) when is_integer(amount) do
     units_to_raw(Decimal.new(amount), unit)
@@ -232,7 +239,7 @@ defmodule Koala.Nano.Tools do
   end
 
   @doc """
-  Converts a raiblocks address to a public key.
+  Converts a Nano address to a public key.
   """
   def address_to_public!(address) do
     binary = address_to_public_without_trim!(address)
@@ -240,7 +247,7 @@ defmodule Koala.Nano.Tools do
   end
 
   @doc """
-  Same as `RaiEx.Tools.address_to_public!` except leaves untrimmied 5 bytes at end of binary.
+  Same as `Nano.Tools.address_to_public!` except leaves untrimmied 5 bytes at end of binary.
   """
   def address_to_public_without_trim!(address) do
     binary =
@@ -255,7 +262,7 @@ defmodule Koala.Nano.Tools do
 
   @doc """
   Creates an address from the given *public key*. The address is encoded in
-  base32 as defined in `RaiEx.Tools.Base32` and appended with a checksum.
+  base32 as defined in `Nano.Tools.Base32` and appended with a checksum.
 
   ## Examples
 

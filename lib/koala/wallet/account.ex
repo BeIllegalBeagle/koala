@@ -43,6 +43,8 @@ defmodule Koala.Wallet.Account do
                :error ->
                  {:error, "blocks failed"}
            end
+
+           
            {_no, tre} = Keyword.get_and_update(account_info, :hashes, fn current_value -> {current_value, rest} end)
            item = Agent.update(name, fn account_info -> account_info = tre end)
 
@@ -84,7 +86,7 @@ defp sign({hash, nonce, address, amount, account_id}, seed) do
         {priv, pub} = Tools.seed_account!(seed, nonce)
           |> Tools.receive(hash, prev_hash.hash)
       else
-        IO.inspect("ATTEMPT OF A DUPLICATE BLOCK PROCESS") 
+        IO.inspect("ATTEMPT OF A DUPLICATE BLOCK PROCESS")
         :error
           #return, as we are in a duplicate hash
       end

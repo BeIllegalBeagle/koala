@@ -4,7 +4,7 @@ defmodule Koala.Wallet.Data.Blocks do
   import Ecto.Query
 
   alias Koala.Wallet.Data.{Addresses, Repo, Wallets, Blocks}
-# make schema for blocks
+
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "blocks" do
     field :type, :string
@@ -21,7 +21,7 @@ defmodule Koala.Wallet.Data.Blocks do
 
   def get_frontier(account_id), do: Repo.all(frontier_block(account_id)) |> List.first
 
-## of course this would be where i would get the frontier block from, oh and
+
  ## convert the balance from decimal to int
   def frontier_block(account_id) do
     from i in Blocks,
@@ -33,11 +33,10 @@ defmodule Koala.Wallet.Data.Blocks do
   def remove_all_blocks(address) do
     id = Koala.Wallet.Data.account_id(address)
     from(p in Blocks, where: p.accounts_id == ^id) |> Repo.delete_all
-     # |> Repo.delete
   end
 
   def lastest_link(account_id), do: Repo.all(get_previous_hash(account_id)) |> List.first |> Map.values |> List.first
-  
+
   defp get_previous_hash(account_id) do
     from i in Blocks,
     where: i.accounts_id == ^account_id,

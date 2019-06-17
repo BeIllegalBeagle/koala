@@ -48,6 +48,8 @@ defmodule Koala.Canoe.Handler do
     {:ok, state}
   end
 
+  ##WHAT HAPPENS IF THE ACCOUNT IS DELETED??
+
   def handle_message(topic, publish, state) do
     {:ok, oo} = Jason.decode(publish)
     IO.inspect(oo)
@@ -59,50 +61,47 @@ defmodule Koala.Canoe.Handler do
     account_link = ll["link_as_account"]
     hash = oo["hash"]
 
-    IO.inspect(account)
-    IO.inspect(hash)
     if is_send do
       ##if it is from an account in this wallet
-      IO.inspect("in if")
+      IO.inspect("in if ID")
 
-          id = case Koala.Wallet.Data.account_id_canoe(account) do
-            nil ->
-              Koala.Wallet.Data.account_id(account_link)
-            {:ok, final_id} ->
-              final_id
+      id = case Koala.Wallet.Data.account_id_canoe(account) do
+        nil ->
+          #id the trans is from a foreign place then make the function end here
+          Koala.Wallet.Data.account_id(account_link)
+        {:ok, final_id} ->
+          final_id
 
-          end
-          IO.inspect("menan #{id}")
+      end
+      IO.inspect("If of a del'd ID #{id}")
 
-          ##if the  the link as account is with us (recip)
-          if Koala.Wallet.Data.does_wallet_have_account?(account_link) do
-            IO.inspect("in our wallet")
-            case Koala.Wallet.Data.Blocks.list_hashes?(id, hash) do
-              true ->
-                IO.inspect("TRUE DA?T")
 
-                # tre = Agent.get(name, fn account_info -> account_info end)
+      if Koala.Wallet.Data.does_wallet_have_account?(account_link) do
+        IO.inspect("in our wallet")
+        case Koala.Wallet.Data.Blocks.list_hashes?(id, hash) do
+          true ->
+            IO.inspect("TRUE DA?T")
 
+          false ->
+            IO.inspect account_link
+            name = {:via, Registry, {Koala_Registry, account_link}}
+            tre = Agent.get(name, fn account_info -> account_info end)
+
+            case Enum.member?(tre[:hashes], hash) do
               false ->
-                IO.inspect account_link
-                name = {:via, Registry, {Koala_Registry, account_link}}
-                tre = Agent.get(name, fn account_info -> account_info end)
+            {_no, tre} = Keyword.get_and_update(tre, :hashes, fn current_value -> {current_value, tre[:hashes] ++ [hash]} end)
 
-                case Enum.member?(tre[:hashes], hash) do
-                  false ->
-                {_no, tre} = Keyword.get_and_update(tre, :hashes, fn current_value -> {current_value, tre[:hashes] ++ [hash]} end)
-
-                Agent.update(name, fn account_info -> account_info = tre end)
-                Process.spawn(fn -> Account.loop(tre[:wallet_name], tre, name) end, [:link])
-                  true ->
-                    IO.inspect "ITS ALREADY IN!!"
-                end
+            Agent.update(name, fn account_info -> account_info = tre end)
+            Process.spawn(fn -> Account.loop(tre[:wallet_name], tre, name) end, [:link])
+              true ->
+                IO.inspect "ITS ALREADY IN!!"
             end
+        end
 
-          else
-            IO.inspect("just a confirm message")
+      else
+        IO.inspect("just a confirm message")
 
-          end
+      end
 
 
     else

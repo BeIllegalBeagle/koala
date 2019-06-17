@@ -13,19 +13,13 @@ defmodule Koala.Canoe do
 
   def new_account!(wallet) do
 
-    result = post("/rpc", %{action: "create_server_account",
+    with {:ok, response} <- post("/rpc", %{action: "create_server_account",
                             token: Keyword.fetch!(wallet, :mqtt_token),
                             tokenPass: Keyword.fetch!(wallet, :mqtt_token_pass),
-                            wallet: Keyword.fetch!(wallet, :mqtt_wallet_id)})
-    case result do
-      {:ok, response} ->
-        IO.puts "response body: "
-        IO.inspect response
-      {:error, response} ->
-        IO.puts "response body: "
-        IO.inspect response
-
-
+                            wallet: Keyword.fetch!(wallet, :mqtt_wallet_id)})  do
+    else
+        {:error, response} ->
+          response
     end
 
   end
@@ -57,7 +51,7 @@ defmodule Koala.Canoe do
   end
 
   def block_info_balance(hash) do
-    IO.inspect(hash)
+
     {:ok, response} =  post("/rpc", %{action: "blocks_info", hashes: ["#{hash}"]})
     {:ok, balance} = response.body |> Map.get("blocks")
     |> Map.get(hash)
@@ -102,7 +96,6 @@ defmodule Koala.Canoe do
       |> Jason.encode
 
     {:ok, response} = post("/rpc", %{action: "process", block: block})
-    IO.inspect(response.body)
     {:ok, response.body}
   end
 
@@ -137,17 +130,14 @@ defmodule Koala.Canoe do
       wallet_id = Keyword.fetch!(state_tokens, :mqtt_wallet_id)
 
     {:ok, msg} = Jason.encode(%{name: "Koala", accounts: ["#{accounts}"], "version": 0.15, wallet: wallet_id})
-    IO.inspect msg
+
     ##got rid of QoS
     case Tortoise.publish_sync(wallet_id, "wallet/#{wallet_id}/register", msg, qos: 2, timeout: 2000) do
       :ok ->
         :done
       {:error, :timeout} ->
-        IO.inspect(:timeout)
-        :timeout
         __MODULE__.canoe_pub(state_tokens, accounts)
       {:error, :canceled} ->
-        IO.inspect(:canceled)
         __MODULE__.canoe_pub(state_tokens, accounts)
     end
   end

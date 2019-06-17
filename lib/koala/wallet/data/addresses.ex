@@ -41,4 +41,8 @@ def accounts_id_for_address(address) do
   select: %{id: i.id}
 end
 
+def remove_address(address) do
+  from(p in Addresses, where: p.address == ^address) |> Repo.delete_all
+end
+
 end
