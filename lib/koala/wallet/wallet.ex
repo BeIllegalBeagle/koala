@@ -129,6 +129,15 @@ defmodule Koala.Wallet do
   end
 
   @doc """
+    returns list of wallets current account
+  """
+
+  def accounts(wallet_name) do
+    String.to_atom(wallet_name |> String.capitalize)
+      |> GenServer.call({:accounts})
+  end
+
+  @doc """
     Deletes and account from the wallet.
 
     Removes all associated blocks, and the account from
@@ -208,7 +217,7 @@ defmodule Koala.Wallet do
     address the wallet currently owns
   """
 
-  defp begin_accounts(accounts) do
+  defp begin_accounts(state) do
     {:ok, accounts} = Enum.group_by(state.accounts, &(&1.nonce), &(&1.address))
     |> Map.values
     |> Enum.flat_map(fn x -> x end)
@@ -262,7 +271,7 @@ defmodule Koala.Wallet do
 
         state = if state.accounts != [] do
 
-          begin_accounts(state.accounts)
+          begin_accounts(state)
 
           state
 
@@ -282,7 +291,7 @@ defmodule Koala.Wallet do
           new_acnt_with_id =  %{id: acnt_id, address: pub, nonce: 0, balance: 0}
           state = %Wallet{state | nonce: 1, accounts: List.insert_at(state.accounts, 0, new_acnt_with_id)}
 
-          begin_accounts(state.accounts)
+          begin_accounts(state)
 
           state
 
@@ -321,24 +330,41 @@ defmodule Koala.Wallet do
     {:reply, result, state}
   end
 
+  def handle_call({:accounts}, _from, state) do
+    
+    result = case Enum.map(state.accounts, fn (y) -> y.address end) do
+      result ->
+        {:ok, result}
+      [] ->
+        {:error, "No address found for wallet #{state.name}"}
+    end
+
+    {:reply, result, state}
+  end
 
 
+##TOdo clause so that the genesis address isnt deleted
 
   def handle_call({:delete_account, account}, _from, state) do
 
-    _result = Koala.Wallet.Data.Blocks.remove_all_blocks(account)
-    IO.inspect("INFLATION")
-    _result = Koala.Wallet.Data.Addresses.remove_address(account)
+    result = if Enum.count(state.accounts) != 1 do
+      _result = Koala.Wallet.Data.Blocks.remove_all_blocks(account)
+      IO.inspect("INFLATION")
+      _result = Koala.Wallet.Data.Addresses.remove_address(account)
 
-    result = case Registry.lookup(Koala_Registry, account) do
-      [] ->
-        {:ok, "Task for #{account} already killed"}
-      [{pid, _nil}]  ->
-        IO.inspect("The needful #{account}")
-        {Agent.stop(pid), "Task killed"}
+      result = case Registry.lookup(Koala_Registry, account) do
+        [] ->
+          {:ok, "Task for #{account} already killed"}
+        [{pid, _nil}]  ->
+          IO.inspect("The needful #{account}")
+          {Agent.stop(pid), "Task killed"}
+      end
+
+      state = %{state | accounts: Enum.reject(state.accounts, fn x -> x[:address] == account end) }
+      result
+    else
+      {:error, "Wallet must have at least one address"}
     end
-
-    state = %{state | accounts: Enum.reject(state.accounts, fn x -> x[:address] == account end) }
 
     {:reply, result, state}
   end

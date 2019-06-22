@@ -119,6 +119,35 @@ alias Koala.Nano.Tools, as: Tools
 
   end
 
+  def kill_koala(wallet_name, [address | accounts]) do
+    Koala.Wallet.delete_account(wallet_name, address)
+    kill_koala(wallet_name, accounts)
+  end
+
+  def kill_koala(wallet_name, []) do
+    _result = Koala.Wallet.Data.burn_koala(wallet_name)
+    :ok = burn_seed(wallet_name)
+
+    wallet_name
+      |> Koala.Wallet.get_wallet_id
+      |> Tortoise.Connection.disconnect # what does this return?
+
+    :ok = Koala.Supervisor.terminate_child(self())
+  end
+
+  @doc """
+    Deletes the blocks, addresses, wallet seed and name assioated with
+    the wallet name give.
+    * starts with getting a list of all wallets addresses
+    * a recursive deletion is then put in place
+    * ends with the postgres entry and seed file deleted
+  """
+
+  def kill_koala(wallet_name) do
+    accounts = Koala.Wallet.accounts(wallet_name)
+    kill_koala(wallet_name, accounts)
+  end
+
   defp make_seed(password) do
     seed = Base.encode16(Koala.Nano.Tools.seed) |> AES256.encrypt(password) |> parsing_result()
     case Enum.at(seed, 0) |> String.contains?("/") do
