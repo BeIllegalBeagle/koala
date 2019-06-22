@@ -29,13 +29,10 @@ a wallet name used wth the **new_wallet_seed/2** function
 ```
 
 ### Delete Wallet and end Koala Genserver
+This will remove all of the wallets data and kill the Genserver once complete
 
 ```elixir
-def deps do
-[
-{:koala, "~> 0.1.0"}
-]
-end
+    Koala.Interface.kill_koala(wallet_name)
 ```
 
 ### Send nano
