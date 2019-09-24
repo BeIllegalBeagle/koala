@@ -4,7 +4,7 @@ defmodule Koala.Interface do
 alias Koala.Wallet.Repo
 alias Koala.Nano.Tools, as: Tools
 
-
+  ##ToD0
   def check_file_structure do
     case File.exists?(@home_dir <> "/Library/Koala/") do
       :false ->

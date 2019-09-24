@@ -57,7 +57,7 @@ defmodule Koala.Nano.Tools.Validator do
     is_binary(addr) and
     String.length(addr) == 64 and
     Regex.match?(~r/^[0-9a-z_]+$/, addr) and
-    String.starts_with?(addr, "xrb_")
+    String.starts_with?(addr, "xrb_") or String.starts_with?(addr, "nano_")
   end
 
   @doc false

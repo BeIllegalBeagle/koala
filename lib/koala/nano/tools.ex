@@ -252,7 +252,7 @@ defmodule Koala.Nano.Tools do
   def address_to_public_without_trim!(address) do
     binary =
       address
-      |> String.trim("xrb_")
+      |> String.trim("xrb_") ##needs changing for nano_
       |> Base32.decode!()
 
     <<_drop::size(4), pub_key::binary>> = binary

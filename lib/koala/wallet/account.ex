@@ -44,14 +44,13 @@ defmodule Koala.Wallet.Account do
                  {:error, "blocks failed"}
            end
 
-           
            {_no, tre} = Keyword.get_and_update(account_info, :hashes, fn current_value -> {current_value, rest} end)
            item = Agent.update(name, fn account_info -> account_info = tre end)
 
            loop(wallet_name, tre, name)
 
 
-      empty(account_info[:hashes]) == false->
+      empty(account_info[:hashes]) == false ->
 
     end
 

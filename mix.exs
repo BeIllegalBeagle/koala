@@ -39,7 +39,7 @@ defmodule Koala.MixProject do
       {:tesla, "~> 1.2.0"},
       {:aes256, "~> 0.5.0"},
       {:jason, ">= 1.0.0"},
-      {:certifi, github: "certifi/erlang-certifi"},
+      {:calendar, "~> 1.0.0"},
       {:math, "~> 0.3.0"}
 
       # {:dep_from_hexpm, "~> 0.3.0"},
