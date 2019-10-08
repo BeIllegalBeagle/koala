@@ -76,7 +76,13 @@ defmodule Koala.Canoe do
   def is_open!(account, count \\ 5) do
     {:ok, response} = post("/rpc", %{action: "account_history", account: "#{account}", count: count})
 
-    "" != Map.get(response.body, "history")
+    case Map.has_key?(response.body, "history") do
+       true ->
+         response.body["history"] != ""
+        false ->
+          {:error, {!Map.has_key?(response.body, "error"), response.body}}
+    end
+
   end
 
   def work_generate(hash) do

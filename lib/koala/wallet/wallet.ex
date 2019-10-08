@@ -6,7 +6,7 @@ defmodule Koala.Wallet do
   # @genesis_address "xrb_1ernxghpo7kyhc6icokqhy5itbkez11e3u3k5utmepjpx97wsqi6pyq134ir"
   ## aws xrb_1ernxghpo7kyhc6icokqhy5itbkez11e3u3k5utmepjpx97wsqi6pyq134ir
 
-  @genesis_address "xrb_1qzfp3op48im348qdybmrheu9dogtopj1jyioguq9pyo5i7mkqgo4jaswp4a"
+  @genesis_address "nano_1qzfp3op48im348qdybmrheu9dogtopj1jyioguq9pyo5i7mkqgo4jaswp4a"
   ## local xrb_1qzfp3op48im348qdybmrheu9dogtopj1jyioguq9pyo5i7mkqgo4jaswp4 a
 
   use GenServer
@@ -290,7 +290,6 @@ defmodule Koala.Wallet do
           acnt_id = Koala.Wallet.Data.account_id(pub)
           new_acnt_with_id =  %{id: acnt_id, address: pub, nonce: 0, balance: 0}
           state = %Wallet{state | nonce: 1, accounts: List.insert_at(state.accounts, 0, new_acnt_with_id)}
-
           begin_accounts(state)
 
           state
@@ -331,7 +330,7 @@ defmodule Koala.Wallet do
   end
 
   def handle_call({:accounts}, _from, state) do
-    
+
     result = case Enum.map(state.accounts, fn (y) -> y.address end) do
       result ->
         {:ok, result}

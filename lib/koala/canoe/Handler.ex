@@ -52,7 +52,7 @@ defmodule Koala.Canoe.Handler do
 
   def handle_message(topic, publish, state) do
     {:ok, oo} = Jason.decode(publish)
-    IO.inspect(oo)
+
     is_send = Map.has_key?(oo, "is_send")
     account = oo["account"]
       pp = Map.get(oo, "block")
@@ -63,7 +63,7 @@ defmodule Koala.Canoe.Handler do
 
     if is_send do
       ##if it is from an account in this wallet
-      IO.inspect("in if ID")
+
 
       id = case Koala.Wallet.Data.account_id_canoe(account) do
         nil ->

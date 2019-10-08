@@ -97,11 +97,11 @@ alias Koala.Nano.Tools, as: Tools
     case Enum.member?(files_names, "#{wallet_name}.aes") do
 
       false ->
-        IO.inspect "anyeewher"
+
         seed = make_seed(password)
-        IO.puts(seed)
-        result = @home_dir <> Enum.at(@koala_dirs, 2) <> "/#{Enum.at(seed, 0)}" <> "_#{wallet_name}.aes" |> File.write!(Enum.at(seed, 1))
-        IO.inspect(result)
+        result = @home_dir <> Enum.at(@koala_dirs, 2) <> "/#{Enum.at(seed, 0)}" <> "_#{wallet_name}.aes"
+          |> File.write!(Enum.at(seed, 1))
+
         item = Koala.Wallet.Data.insert_wallet([name: String.to_atom(wallet_name |> String.capitalize), nonce: 0, balance: 0])
         tokens = [mqtt_token: item.mqtt_token,
                   mqtt_token_pass: item.mqtt_token_pass,

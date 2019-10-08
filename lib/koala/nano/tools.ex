@@ -146,7 +146,7 @@ defmodule Koala.Nano.Tools do
         type: "open",
         account: create_account!(pub),
         representative: Application.get_env(:rai_ex, :representative,
-            "xrb_3pczxuorp48td8645bs3m6c3xotxd3idskrenmi65rbrga5zmkemzhwkaznh")
+            "nano_3pczxuorp48td8645bs3m6c3xotxd3idskrenmi65rbrga5zmkemzhwkaznh")
       }
       |> Block.sign(priv, pub)
       |> Block.process()
@@ -169,7 +169,7 @@ defmodule Koala.Nano.Tools do
         type: "receive",
         account: create_account!(pub),
         representative: Application.get_env(:rai_ex, :representative,
-            "xrb_3pczxuorp48td8645bs3m6c3xotxd3idskrenmi65rbrga5zmkemzhwkaznh")
+            "nano_3pczxuorp48td8645bs3m6c3xotxd3idskrenmi65rbrga5zmkemzhwkaznh")
       }
       |> Block.sign(priv, pub)
       |> Block.process()
@@ -195,7 +195,7 @@ defmodule Koala.Nano.Tools do
         type: "send",
         account: create_account!(pub),
         representative: Application.get_env(:rai_ex, :representative,
-            "xrb_3pczxuorp48td8645bs3m6c3xotxd3idskrenmi65rbrga5zmkemzhwkaznh")
+            "nano_3pczxuorp48td8645bs3m6c3xotxd3idskrenmi65rbrga5zmkemzhwkaznh")
       }
       |> Block.sign(priv, pub)
       |> Block.process()
@@ -250,14 +250,31 @@ defmodule Koala.Nano.Tools do
   Same as `Nano.Tools.address_to_public!` except leaves untrimmied 5 bytes at end of binary.
   """
   def address_to_public_without_trim!(address) do
-    binary =
-      address
-      |> String.trim("xrb_") ##needs changing for nano_
-      |> Base32.decode!()
 
-    <<_drop::size(4), pub_key::binary>> = binary
+    pub_key = case String.starts_with?(address, "xrb_") do
 
-    pub_key
+      true ->
+        binary =
+          address
+          |> String.trim("xrb_")
+          |> Base32.decode!()
+
+        <<_drop::size(4), pub_key::binary>> = binary
+
+        pub_key
+
+      false ->
+        binary =
+          address
+          |> String.trim("nano_")
+          |> Base32.decode!()
+
+        <<_drop::size(4), pub_key::binary>> = binary
+
+        pub_key
+    end
+
+
   end
 
   @doc """
@@ -291,7 +308,7 @@ defmodule Koala.Nano.Tools do
       |> left_pad_binary(4)
       |> Base32.encode!()
 
-    "xrb_#{encoded_address <> encoded_check}"
+    "nano_#{encoded_address <> encoded_check}"
   end
 
   @doc """

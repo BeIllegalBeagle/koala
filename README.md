@@ -1,8 +1,8 @@
-# Koala - Light-Wallet for the nano cryptocurrency
+# 🐨 Koala - Light-Wallet for the nano cryptocurrency
 
 ## Setup
 
-A postgres setup is needed with the username koala and password eucyltpe
+A postgres setup is needed with the username koala and password eucalypt
 and certificate file and key file for SSL is needed in the home directory of your computer
 
 ### Create a new wallet
@@ -21,7 +21,7 @@ If not password is provided for the second argument, it is "koala" by default
 
 **koala_start/2**
 
-This function starts the koala Genserver with an existing wallet created with 
+This function starts the koala Genserver with an existing wallet created with
 a wallet name used wth the **new_wallet_seed/2** function
 
 ```elixir
@@ -52,5 +52,3 @@ This will remove all of the wallets data and kill the Genserver once complete
 ```elixir
     Koala.Wallet.delete_account.(wallet_name, address_name)
 ```
-
-

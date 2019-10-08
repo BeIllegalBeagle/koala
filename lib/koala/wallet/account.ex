@@ -70,38 +70,35 @@ defmodule Koala.Wallet.Account do
   # end
 
 
-defp sign({hash, nonce, address, amount, account_id}, seed) do
+  defp sign({hash, nonce, address, amount, account_id}, seed) do
 
-  if Koala.Canoe.is_open!(address) do
-    if is_send!(hash) do
-      prev_hash = Blocks.get_frontier(account_id)
-      IO.inspect(prev_hash)
-      {priv, pub} = Tools.seed_account!(seed, nonce)
-        |> Tools.send(hash, amount, prev_hash.hash)
-    else
-      if Blocks.lastest_link(account_id) != hash do
+    if Koala.Canoe.is_open!(address) do
+      if is_send!(hash) do
         prev_hash = Blocks.get_frontier(account_id)
         IO.inspect(prev_hash)
         {priv, pub} = Tools.seed_account!(seed, nonce)
-          |> Tools.receive(hash, prev_hash.hash)
+          |> Tools.send(hash, amount, prev_hash.hash)
       else
-        IO.inspect("ATTEMPT OF A DUPLICATE BLOCK PROCESS")
-        :error
-          #return, as we are in a duplicate hash
+        if Blocks.lastest_link(account_id) != hash do
+          prev_hash = Blocks.get_frontier(account_id)
+          IO.inspect(prev_hash)
+          {priv, pub} = Tools.seed_account!(seed, nonce)
+            |> Tools.receive(hash, prev_hash.hash)
+        else
+          IO.inspect("ATTEMPT OF A DUPLICATE BLOCK PROCESS")
+          :error
+            #return, as we are in a duplicate hash
+        end
       end
+    else
+      Tools.seed_account!(seed, nonce)
+        |> Tools.open_account hash
     end
-  else
-    Tools.seed_account!(seed, nonce)
-      |> Tools.open_account hash
+
   end
 
-end
-
-defp is_send!(link) do
-  "xrb" == String.slice(link, 0, 3)
-end
-
-
-
+  defp is_send!(link) do
+    String.starts_with?(link, "nano_") or String.starts_with?(link, "xrb_")
+  end
 
 end
