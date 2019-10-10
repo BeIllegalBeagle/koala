@@ -1,14 +1,20 @@
 defmodule Koala.Nano.Tools do
   @moduledoc """
-  This module provides convenience functions for working with a RaiBlocks node.
+  This module provides convenience functions for interacting with the nano protocol and contructing blocks.
   """
+
+  use Tesla
+  use Task
 
   import Koala.Nano.Helpers
 
   alias Koala.Nano.Block
   alias Koala.Nano.Tools.Base32
 
-  use Task
+  plug Tesla.Middleware.BaseUrl, "https://www.nanode.co"
+  plug Tesla.Middleware.Headers, [{"authorization", "token xyz"}]
+  plug Tesla.Middleware.JSON
+
 
   @delay 200
   @zero Decimal.new(0)
@@ -134,9 +140,47 @@ defmodule Koala.Nano.Tools do
     String.length(hex_balance) == 32
   end
 
+
+  @doc """
+  Does a network call to check whether or not the account in question is open.
+  Replaces the function in canoe as it was far too unreliable
+  """
+
+  def is_open!(account) do
+    {:ok, response} = get("/api/account?id=" <> account)
+    response.body["history"] != ""
+  end
+
+  @doc """
+  The same case as the function above
+  """
+
+  def balance_from_address(address) do
+    {:ok, response} = get("/api/account?id=" <> address)
+
+    case response.body
+      |> Map.get("info")
+      |> Map.get("balance") do
+      nil ->
+          "0"
+      bal ->
+        bal
+      end
+  end
+
+  @doc """
+  The same case as the function above again
+  """
+
+  def balance_from_hash (hash) do
+    {:ok, response} = get("/api/block?id=" <> hash)
+    response.body["amount"]
+  end
+
+
   def open_account({priv, pub}, source) do
     # The open block
-    amount = Koala.Canoe.get_balance(source)
+    amount = balance_from_hash(source)
     block =
       %Block{
         balance: amount,
@@ -156,8 +200,10 @@ defmodule Koala.Nano.Tools do
 
   def receive({priv, pub}, source, frontier_block_hash) do
     # The open block
-    amount = Koala.Canoe.get_balance(source)
-    balance = Koala.Canoe.block_info_balance(frontier_block_hash)
+    amount = balance_from_hash(source)
+
+    balance = create_account!(pub)
+      |> balance_from_address
       |> String.to_integer
 
     block =
@@ -181,9 +227,9 @@ defmodule Koala.Nano.Tools do
 
   def send({priv, pub}, recipient, chx \\ 10000000000000000000000000, frontier_block_hash) do
     # The open block
-
-    # chx = 10000000000000000000000000
-    balance = Koala.Canoe.block_info_balance(frontier_block_hash)
+    address = create_account!(pub)
+    balance = address
+      |> balance_from_address
       |> String.to_integer
 
     block =
@@ -193,7 +239,7 @@ defmodule Koala.Nano.Tools do
         previous: frontier_block_hash,
         link: Base.encode16((address_to_public!(recipient))),
         type: "send",
-        account: create_account!(pub),
+        account: address,
         representative: Application.get_env(:rai_ex, :representative,
             "nano_3pczxuorp48td8645bs3m6c3xotxd3idskrenmi65rbrga5zmkemzhwkaznh")
       }

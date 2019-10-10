@@ -72,27 +72,35 @@ defmodule Koala.Wallet.Account do
 
   defp sign({hash, nonce, address, amount, account_id}, seed) do
 
-    if Koala.Canoe.is_open!(address) do
-      if is_send!(hash) do
+    with true <- is_send!(hash) do
+      if Tools.is_open!(address) do
         prev_hash = Blocks.get_frontier(account_id)
         IO.inspect(prev_hash)
         {priv, pub} = Tools.seed_account!(seed, nonce)
           |> Tools.send(hash, amount, prev_hash.hash)
       else
-        if Blocks.lastest_link(account_id) != hash do
-          prev_hash = Blocks.get_frontier(account_id)
-          IO.inspect(prev_hash)
-          {priv, pub} = Tools.seed_account!(seed, nonce)
-            |> Tools.receive(hash, prev_hash.hash)
-        else
-          IO.inspect("ATTEMPT OF A DUPLICATE BLOCK PROCESS")
-          :error
-            #return, as we are in a duplicate hash
-        end
+        {:error, "cannot send nano with unopened account!"}
       end
+
     else
-      Tools.seed_account!(seed, nonce)
-        |> Tools.open_account hash
+      false ->
+        if Tools.is_open!(address) do
+
+          if Blocks.lastest_link(account_id) != hash do
+            prev_hash = Blocks.get_frontier(account_id)
+            IO.inspect(prev_hash)
+            {priv, pub} = Tools.seed_account!(seed, nonce)
+              |> Tools.receive(hash, prev_hash.hash)
+          else
+            IO.inspect("ATTEMPT OF A DUPLICATE BLOCK PROCESS")
+            :error
+              #return, as we are in a duplicate hash
+          end
+
+        else
+          Tools.seed_account!(seed, nonce)
+            |> Tools.open_account hash
+        end
     end
 
   end

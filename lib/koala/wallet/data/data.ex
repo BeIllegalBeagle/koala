@@ -34,7 +34,7 @@ defmodule Koala.Wallet.Data do
   end
 
   def fronteir(address) do
-    {:ok, id} = Repo.get_by(Koala.Wallet.Data.Addresses, address: address)
+    {:ok, id} = Repo.get_by(Koala.Wallet.Data.Addresses, address: address) ##should have a case/with/if for when it's nil
      |> Map.fetch(:id)
      case Blocks.get_frontier(id) do
       nil ->

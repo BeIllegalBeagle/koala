@@ -24,15 +24,6 @@ defmodule Koala.Canoe do
 
   end
 
-  defp is_account_open(account, count \\ 1) do
-
-      if Map.values(account) == [""] do
-        false
-      else
-        true
-      end
-  end
-
 #will get the hash for an recieved block here
   def accounts_pending(accounts) do
 
@@ -50,39 +41,9 @@ defmodule Koala.Canoe do
     result = post("/rpc", %{action: "blocks_info", hashes: ["#{hash}"]})
   end
 
-  def block_info_balance(hash) do
-
-    {:ok, response} =  post("/rpc", %{action: "blocks_info", hashes: ["#{hash}"]})
-    {:ok, balance} = response.body |> Map.get("blocks")
-    |> Map.get(hash)
-    |> Map.get("contents")
-    |> Jason.decode
-
-    balance = Map.get(balance, "balance")
-
-  end
-
-  def get_balance (hash) do
-    {:ok, response} =  post("/rpc", %{action: "blocks_info", hashes: ["#{hash}"]})
-    %{^hash => %{"amount" => balance}} = response.body |> Map.get("blocks")
-    balance
-  end
-
   def account_history(account, count \\ 5) do
     {:ok, response} = post("/rpc", %{action: "account_history", account: "#{account}", count: count})
     response.body
-  end
-
-  def is_open!(account, count \\ 5) do
-    {:ok, response} = post("/rpc", %{action: "account_history", account: "#{account}", count: count})
-
-    case Map.has_key?(response.body, "history") do
-       true ->
-         response.body["history"] != ""
-        false ->
-          {:error, {!Map.has_key?(response.body, "error"), response.body}}
-    end
-
   end
 
   def work_generate(hash) do

@@ -107,6 +107,11 @@ defmodule Koala.Nano.Block do
       # Broadcast to the network
       open_block = block |> Block.sign(priv_new, pub_new) |> Block.process()
 
+      ## ISSUES
+
+      There is no warning for when the wallet is a block behind
+      thus making invalid processing requests to the network
+
   """
 
   import Koala.Nano.Helpers

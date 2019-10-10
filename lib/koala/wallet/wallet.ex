@@ -164,8 +164,10 @@ defmodule Koala.Wallet do
        nil ->
          {:ok, "address was not open"}
 
-       {:ok, fronteir} ->
-         case fronteir |> Koala.Canoe.block_info_balance |> String.to_integer do
+       {:ok, _fronteir} ->
+         case from_address
+          |> Tools.balance_from_address
+          |> String.to_integer do
 
 
            0 ->
@@ -346,7 +348,7 @@ defmodule Koala.Wallet do
 
   def handle_call({:delete_account, account}, _from, state) do
 
-    result = if Enum.count(state.accounts) != 1 do
+    result = if Enum.count(state.accounts) == 1 do
       _result = Koala.Wallet.Data.Blocks.remove_all_blocks(account)
       IO.inspect("INFLATION")
       _result = Koala.Wallet.Data.Addresses.remove_address(account)
@@ -371,16 +373,12 @@ defmodule Koala.Wallet do
   def handle_call({:get_balance, nonce}, _from, state) do
     [result] = Enum.reject(state.accounts, fn (y) ->  nonce != y.nonce end)
     result = Map.get(result, :address)
-      with  {:ok, hash} <- Koala.Wallet.Data.fronteir(result) do
-        current_balance = hash |> Koala.Canoe.block_info_balance
-                               |> String.to_integer
+    current_balance = result
+      |> Tools.balance_from_address
+      |> String.to_integer
 
-        {:reply, current_balance, state}
+      {:reply, current_balance, state}
 
-      else
-        0 ->
-          {:reply, 0, state}
-      end
   end
 
   def handle_call({:sub_account}, _from, state) do
@@ -422,10 +420,8 @@ defmodule Koala.Wallet do
 
   def handle_call({:send_all_nano, recipient, from_address}, _from, state) do
 
-    {:ok, current_balance} =  Koala.Wallet.Data.fronteir(from_address)
-
-    current_balance =  current_balance
-      |> Koala.Canoe.block_info_balance
+    current_balance = from_address
+      |> Tools.balance_from_address
       |> String.to_integer
 
     name = {:via, Registry, {Koala_Registry, from_address}}
