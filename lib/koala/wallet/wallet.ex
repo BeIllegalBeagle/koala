@@ -423,7 +423,7 @@ defmodule Koala.Wallet do
     current_balance = from_address
       |> Tools.balance_from_address
       |> String.to_integer
-
+      
     name = {:via, Registry, {Koala_Registry, from_address}}
     tre = Agent.get(name, fn account_info -> account_info end)
     {_no, tre} = Keyword.get_and_update(tre, :hashes, fn current_value -> {current_value, tre[:hashes] ++ [recipient]} end)

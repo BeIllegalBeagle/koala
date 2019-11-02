@@ -11,8 +11,7 @@ defmodule Koala.Nano.Tools do
   alias Koala.Nano.Block
   alias Koala.Nano.Tools.Base32
 
-  plug Tesla.Middleware.BaseUrl, "https://www.nanode.co"
-  plug Tesla.Middleware.Headers, [{"authorization", "token xyz"}]
+  plug Tesla.Middleware.BaseUrl, "https://napi.nanoo.tools"
   plug Tesla.Middleware.JSON
 
 
@@ -147,19 +146,17 @@ defmodule Koala.Nano.Tools do
   """
 
   def is_open!(account) do
-    {:ok, response} = get("/api/account?id=" <> account)
-    response.body["history"] != ""
+    {:ok, response} = get("?action=account_info&account=" <> account)
+     !Map.has_key?(response.body, "error")
   end
 
   @doc """
-  The same case as the function above
+  The same case as the function above. Returns balance in RAW
   """
 
   def balance_from_address(address) do
-    {:ok, response} = get("/api/account?id=" <> address)
-
+    {:ok, response} = get("/?action=account_info&account=" <> address)
     case response.body
-      |> Map.get("info")
       |> Map.get("balance") do
       nil ->
           "0"
@@ -173,7 +170,7 @@ defmodule Koala.Nano.Tools do
   """
 
   def balance_from_hash (hash) do
-    {:ok, response} = get("/api/block?id=" <> hash)
+    {:ok, response} = get("/?action=block_info&hash=" <> hash)
     response.body["amount"]
   end
 

@@ -27,7 +27,7 @@ defmodule Koala.Canoe do
 #will get the hash for an recieved block here
   def accounts_pending(accounts) do
 
-    {:ok, response} = post("/rpc", %{action: "accounts_pending", accounts: accounts, count: 5})
+    {:ok, response} = post("/rpc", %{action: "accounts_pending", accounts: accounts, count: 4096})
     {:error, :econnrefused}
     %{"blocks" => body} = response.body
     #does the account have an open block (or any block?) if so do the open_account thing
