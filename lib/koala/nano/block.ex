@@ -299,7 +299,7 @@ defmodule Koala.Nano.Block do
   Receives a block.
   """
   def recv(%Block{previous: previous} = block) do
-    with {:ok, %{"work" => work}} <- Canoe.work_generate(previous),
+    with {:ok, %{"work" => work}} <- Tools.generate_PoW(previous),
          {:ok, %{}} <- Canoe.process(%{block | work: work, type: "state"})
          do
            %{block | work: work, state: :sent, type: "receive"}

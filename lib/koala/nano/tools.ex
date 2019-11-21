@@ -139,6 +139,19 @@ defmodule Koala.Nano.Tools do
     String.length(hex_balance) == 32
   end
 
+  @doc """
+  This is an alternative to canoes pow generarion funcrion
+  """
+
+  def generate_PoW(hash) do
+    {:ok, response} = get("/?action=work_generate&hash=" <> hash)
+    case response.body do
+      nil ->
+          "0"
+      bal ->
+        {:ok, %{"work" =>  bal["work"]}}
+      end
+  end
 
   @doc """
   Does a network call to check whether or not the account in question is open.
