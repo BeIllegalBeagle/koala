@@ -3,6 +3,8 @@ defmodule Koala.Wallet.Account do
   alias Koala.Nano.Tools, as: Tools
   alias Koala.Wallet.Data.Blocks, as: Blocks
   alias Koala.Wallet.Data, as: Data
+
+  require Logger
   use Agent
 
 ## feed in wallet name as an Atom
@@ -20,12 +22,13 @@ defmodule Koala.Wallet.Account do
   defguard empty(hashes) when hashes !=[""] and hashes !=[]
 
   def loop(wallet_name, account_info, name) do
-    IO.inspect(account_info[:hashes])
+    {_, _, {_, account_name}} = name
+    IO.inspect(account_info[:hashes], label: "+---- Pending hashes for #{account_name}\n \t├──")
+
     cond do
       empty(account_info[:hashes]) == true->
         cleaned_hashes = List.delete(account_info[:hashes], "")
           [current_hash | rest] = cleaned_hashes
-          # IO.inspect account_info
 
            with {:ok, block} <- sign(
            {
@@ -73,7 +76,7 @@ defmodule Koala.Wallet.Account do
   defp sign({hash, nonce, address, amount, account_id}, seed) do
 
     with true <- is_send!(hash) do
-      if Tools.is_open!(address) do
+      if Koala.Canoe.is_open!(address) do
         prev_hash = Blocks.get_frontier(account_id)
         IO.inspect(prev_hash)
         {priv, pub} = Tools.seed_account!(seed, nonce)
@@ -84,11 +87,11 @@ defmodule Koala.Wallet.Account do
 
     else
       false ->
-        if Tools.is_open!(address) do
+        if Koala.Canoe.is_open!(address) do
 
           if Blocks.lastest_link(account_id) != hash do
             prev_hash = Blocks.get_frontier(account_id)
-            IO.inspect(prev_hash)
+            # IO.inspect(prev_hash)
             {priv, pub} = Tools.seed_account!(seed, nonce)
               |> Tools.receive(hash, prev_hash.hash)
           else

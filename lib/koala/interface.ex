@@ -37,10 +37,10 @@ alias Koala.Nano.Tools, as: Tools
       {:ok, seed} ->
         case Koala.Supervisor.start_child(wallet_name: String.to_atom(wallet_name |> String.capitalize), seed: seed) do
           {:ok, _message} ->
-            IO.puts("starting the wallet")
+            :ok
             # Koala.Supervisor.start_child(wallet_id: wallet_id, seed: seed)
           {:error, message} ->
-            IO.puts message
+            IO.inspect(message)
         end
       {:error, message} ->
         message

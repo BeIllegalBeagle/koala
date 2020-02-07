@@ -139,58 +139,65 @@ defmodule Koala.Nano.Tools do
     String.length(hex_balance) == 32
   end
 
+  def accounts_pending(account) do
+
+    {:ok, response} = get("/?action=accounts_pending&accounts=" <> account)
+    IO.inspect response
+    %{"blocks" => body} = response.body
+
+  end
+
   @doc """
   This is an alternative to canoes pow generarion funcrion
   """
-
-  def generate_PoW(hash) do
-    {:ok, response} = get("/?action=work_generate&hash=" <> hash)
-    case response.body do
-      nil ->
-          "0"
-      bal ->
-        {:ok, %{"work" =>  bal["work"]}}
-      end
-  end
-
-  @doc """
-  Does a network call to check whether or not the account in question is open.
-  Replaces the function in canoe as it was far too unreliable
-  """
-
-  def is_open!(account) do
-    {:ok, response} = get("?action=account_info&account=" <> account)
-     !Map.has_key?(response.body, "error")
-  end
-
-  @doc """
-  The same case as the function above. Returns balance in RAW
-  """
-
-  def balance_from_address(address) do
-    {:ok, response} = get("/?action=account_info&account=" <> address)
-    case response.body
-      |> Map.get("balance") do
-      nil ->
-          "0"
-      bal ->
-        bal
-      end
-  end
-
-  @doc """
-  The same case as the function above again
-  """
-
-  def balance_from_hash (hash) do
-    {:ok, response} = get("/?action=block_info&hash=" <> hash)
-    response.body["amount"]
-  end
-
+  #
+  # def generate_PoW(hash) do
+  #   {:ok, response} = get("/?action=work_generate&hash=" <> hash)
+  #   case response.body do
+  #     nil ->
+  #         "0"
+  #     bal ->
+  #       {:ok, %{"work" =>  bal["work"]}}
+  #     end
+  # end
+  #
+  # @doc """
+  # Does a network call to check whether or not the account in question is open.
+  # Replaces the function in canoe as it was far too unreliable
+  # """
+  #
+  # def is_open!(account) do
+  #   {:ok, response} = get("?action=account_info&account=" <> account)
+  #    !Map.has_key?(response.body, "error")
+  # end
+  #
+  # @doc """
+  # The same case as the function above. Returns balance in RAW
+  # """
+  #
+  # def balance_from_address(address) do
+  #   {:ok, response} = get("/?action=account_info&account=" <> address)
+  #   case response.body
+  #     |> Map.get("balance") do
+  #     nil ->
+  #         "0"
+  #     bal ->
+  #       bal
+  #     end
+  # end
+  #
+  # @doc """
+  # The same case as the function above again
+  # """
+  #
+  # def balance_from_hash (hash) do
+  #   {:ok, response} = get("/?action=block_info&hash=" <> hash)
+  #   response.body["amount"]
+  # end
 
   def open_account({priv, pub}, source) do
     # The open block
-    amount = balance_from_hash(source)
+    amount = Koala.Canoe.amount_from_hash(source)
     block =
       %Block{
         balance: amount,
@@ -210,10 +217,10 @@ defmodule Koala.Nano.Tools do
 
   def receive({priv, pub}, source, frontier_block_hash) do
     # The open block
-    amount = balance_from_hash(source)
+    amount = Koala.Canoe.amount_from_hash(source)
 
     balance = create_account!(pub)
-      |> balance_from_address
+      |> Koala.Canoe.balance_from_address
       |> String.to_integer
 
     block =
@@ -230,8 +237,6 @@ defmodule Koala.Nano.Tools do
       |> Block.sign(priv, pub)
       |> Block.process()
 
-      IO.inspect(block)
-
     {:ok, block}
   end
 
@@ -239,7 +244,7 @@ defmodule Koala.Nano.Tools do
     # The open block
     address = create_account!(pub)
     balance = address
-      |> balance_from_address
+      |> Koala.Canoe.balance_from_address
       |> String.to_integer
 
     block =

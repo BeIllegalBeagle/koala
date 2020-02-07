@@ -52,11 +52,11 @@ defmodule Koala.Canoe.Handler do
 
   def handle_message(topic, publish, state) do
     {:ok, oo} = Jason.decode(publish)
-
+    Logger.info "+--- Incoming Block"
+    IO.inspect  oo
     is_send = Map.has_key?(oo, "is_send")
     account = oo["account"]
-      pp = Map.get(oo, "block")
-     {:ok, ll} = Jason.decode(pp)
+    ll = Map.get(oo, "block")
 
     account_link = ll["link_as_account"]
     hash = oo["hash"]
@@ -83,7 +83,7 @@ defmodule Koala.Canoe.Handler do
             IO.inspect("TRUE DA?T")
 
           false ->
-            IO.inspect account_link
+            # IO.inspect account_link
             name = {:via, Registry, {Koala_Registry, account_link}}
             tre = Agent.get(name, fn account_info -> account_info end)
 

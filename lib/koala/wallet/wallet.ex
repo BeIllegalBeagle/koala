@@ -1,13 +1,14 @@
 defmodule Koala.Wallet do
 
+  require Logger
   @enforce_keys [:name, :seed]
   @nucleous_wallet "genes"
 
-  # @genesis_address "xrb_1ernxghpo7kyhc6icokqhy5itbkez11e3u3k5utmepjpx97wsqi6pyq134ir"
+  @genesis_address "nano_1ernxghpo7kyhc6icokqhy5itbkez11e3u3k5utmepjpx97wsqi6pyq134ir"
   ## aws xrb_1ernxghpo7kyhc6icokqhy5itbkez11e3u3k5utmepjpx97wsqi6pyq134ir
 
-  @genesis_address "nano_1qzfp3op48im348qdybmrheu9dogtopj1jyioguq9pyo5i7mkqgo4jaswp4a"
-  ## local xrb_1qzfp3op48im348qdybmrheu9dogtopj1jyioguq9pyo5i7mkqgo4jaswp4 a
+  # @genesis_address "nano_1qzfp3op48im348qdybmrheu9dogtopj1jyioguq9pyo5i7mkqgo4jaswp4a"
+  ## local xrb_1qzfp3op48im348qdybmrheu9dogtopj1jyioguq9pyo5i7mkqgo4jaswp4a
 
   use GenServer
   use Tesla
@@ -166,7 +167,7 @@ defmodule Koala.Wallet do
 
        {:ok, _fronteir} ->
          case from_address
-          |> Tools.balance_from_address
+          |> Koala.Canoe.balance_from_address
           |> String.to_integer do
 
 
@@ -266,7 +267,7 @@ defmodule Koala.Wallet do
                                 accounts:  Koala.Wallet.Data.get_accounts(wallet[:id])}
 
         # {:already_started, #PID<0.512.0>}}
-        {:ok, _pid} = Koala.Canoe.canoe_start(state.tokens)
+        {:ok, _pid} = Koala.Canoe.MitoNode.canoe_start(state.tokens)
         Process.sleep(2000)
         {:ok, _reference} = Koala.Canoe.canoe_sub(state.tokens)
 
@@ -311,10 +312,14 @@ defmodule Koala.Wallet do
    #need a more offical way of doing this
 
     new_acnt = [id: state.id, address: pub, nonce: state.nonce + 1, balance: 0]
-    Koala.Wallet.Data.insert_wallet_account(new_acnt)
-    new_acnt =  %{id: state.id, address: pub, nonce: state.nonce + 1, balance: 0}
+    %Koala.Wallet.Data.Addresses{id: new_account_id} = Koala.Wallet.Data.insert_wallet_account(new_acnt)
+    new_acnt = %{id: state.id, address: pub, nonce: state.nonce + 1, balance: 0}
     Koala.Canoe.canoe_pub(state.tokens, pub)
     Koala.Wallet.Data.update_nonce(Atom.to_string(state.name), Decimal.new(state.nonce + 1))
+
+    account_info = [seed: state.seed, hashes: [""], nonce: state.nonce + 1, address: pub, id: new_account_id, amoount: nil]
+    Account.start(state.name, account_info)
+
     ##should be updated
     state = %{state | nonce: state.nonce + 1, accounts: List.insert_at(state.accounts, 0, new_acnt)}
     {:reply, {pub, state.nonce}, state}
@@ -421,9 +426,9 @@ defmodule Koala.Wallet do
   def handle_call({:send_all_nano, recipient, from_address}, _from, state) do
 
     current_balance = from_address
-      |> Tools.balance_from_address
+      |> Koala.Canoe.balance_from_address
       |> String.to_integer
-      
+
     name = {:via, Registry, {Koala_Registry, from_address}}
     tre = Agent.get(name, fn account_info -> account_info end)
     {_no, tre} = Keyword.get_and_update(tre, :hashes, fn current_value -> {current_value, tre[:hashes] ++ [recipient]} end)
@@ -459,8 +464,7 @@ defmodule Koala.Wallet do
 
 
     if name == state.tokens[:mqtt_wallet_id] do
-      IO.puts("+--- Wallet '#{state.name}' handled with care and connected to Canoe.
-        ├── Canoe_wallet_id: " <> name)
+      Logger.info("+--- Wallet '#{state.name}' handled with care and connected to Canoe. \n\t├── Canoe_wallet_id: " <> name)
       {:noreply, state}
     else
 

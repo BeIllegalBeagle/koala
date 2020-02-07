@@ -290,6 +290,9 @@ defmodule Koala.Nano.Block do
          do
            %{block | work: work, state: :sent}
          else
+           {:ok, message} ->
+             IO.inspect(message)
+             send(block)
            {:error, reason} ->
               %{block | state: {:error, reason}}
          end
@@ -299,11 +302,14 @@ defmodule Koala.Nano.Block do
   Receives a block.
   """
   def recv(%Block{previous: previous} = block) do
-    with {:ok, %{"work" => work}} <- Tools.generate_PoW(previous),
+    with {:ok, %{"work" => work}} <- Canoe.work_generate(previous),
          {:ok, %{}} <- Canoe.process(%{block | work: work, type: "state"})
          do
            %{block | work: work, state: :sent, type: "receive"}
          else
+           {:ok, message} ->
+             IO.inspect(message)
+             send(block)
            {:error, reason} ->
               %{block | state: {:error, reason}}
          end
@@ -323,6 +329,9 @@ defmodule Koala.Nano.Block do
            ##
            %{block | work: work, state: :sent, type: "open"}
          else
+           {:ok, message} ->
+             IO.inspect(message)
+             send(block)
            {:error, reason} ->
               %{block | state: {:error, reason}}
          end

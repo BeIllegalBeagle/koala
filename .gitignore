@@ -22,3 +22,4 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 koala-*.tar
 
+#/lib/koala/canoe/mito_node.ex

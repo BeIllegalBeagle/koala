@@ -29,7 +29,7 @@ defmodule Koala.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:tortoise, "~> 0.9"},
+      {:tortoise, "~> 0.9.4"},
       {:ecto, "~> 2.2"},
       {:postgrex, "~> 0.13.5"},
       {:decimal, "~> 1.4"},

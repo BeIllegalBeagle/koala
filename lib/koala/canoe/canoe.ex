@@ -9,14 +9,18 @@ defmodule Koala.Canoe do
   plug Tesla.Middleware.Headers, [{"authorization", "token xyz"}]
   plug Tesla.Middleware.JSON
   alias Koala.Wallet
+  alias Koala.Nano.Tools, as: Tools
   alias __MODULE__
 
   def new_account!(wallet) do
 
-    with {:ok, response} <- post("/rpc", %{action: "create_server_account",
-                            token: Keyword.fetch!(wallet, :mqtt_token),
-                            tokenPass: Keyword.fetch!(wallet, :mqtt_token_pass),
-                            wallet: Keyword.fetch!(wallet, :mqtt_wallet_id)})  do
+    with {:ok, response} <- Koala.Canoe.MitoNode.register_wallet(Keyword.fetch!(wallet, :mqtt_wallet_id))  do
+      case response.body do
+        %{"success" => true} ->
+          :ok
+        %{"error" => message} ->
+          :error
+      end
     else
         {:error, response} ->
           response
@@ -24,15 +28,23 @@ defmodule Koala.Canoe do
 
   end
 
-#will get the hash for an recieved block here
+  @doc """
+    will get the hash for an recieved block here
+  """
+
   def accounts_pending(accounts) do
 
     {:ok, response} = post("/rpc", %{action: "accounts_pending", accounts: accounts, count: 4096})
     {:error, :econnrefused}
     %{"blocks" => body} = response.body
-    #does the account have an open block (or any block?) if so do the open_account thing
-    # if hist = []do
-    #   Koala.Wallet.open_account
+    # [acnt] = accounts
+    # res = Tools.accounts_pending(acnt)
+    # IO.inspect res
+    # case res == "" do
+    #   true ->
+    #     %{"blocks" => ""}
+    #   false ->
+    #     %{"blocks" => res}
     # end
 
   end
@@ -41,15 +53,48 @@ defmodule Koala.Canoe do
     result = post("/rpc", %{action: "blocks_info", hashes: ["#{hash}"]})
   end
 
+  def amount_from_hash(hash) do
+    {:ok, result} = block_info(hash)
+    result.body |> Map.get("blocks")
+    |> Map.get(hash)
+    |> Map.get("amount")
+  end
+
+  def account_info(account) do
+    {:ok, response} = result = post("/rpc", %{action: "account_info", account: "#{account}"})
+    response.body
+  end
+
+
+  def balance_from_address(account) do
+    info = account_info(account)
+    if !Map.has_key?(info, "error") do
+      Map.get(info, "balance")
+    else
+      "0"
+    end
+
+  end
+
   def account_history(account, count \\ 5) do
     {:ok, response} = post("/rpc", %{action: "account_history", account: "#{account}", count: count})
     response.body
   end
 
+  def is_open!(account) do
+    history = account_history(account)
+    open = case Map.get(history, "history") do
+      nil ->
+        false
+      acnts ->
+        acnts != ""
+    end
+  end
+
   def work_generate(hash) do
-    {:ok, response} = post("/rpc", %{action: "work_generate", hash: "#{hash}"})
-    # Map.get(response.body, "work")
-    {:ok, response.body}
+    # {:ok, response} = post("/rpc", %{action: "work_generate", hash: "#{hash}"})
+    # {:ok, response.body}
+    Koala.Canoe.MitoNode.work_generate(hash)
   end
 
   def process(block) do
@@ -66,37 +111,15 @@ defmodule Koala.Canoe do
     {:ok, response.body}
   end
 
-#pass through the wallet object
-#should be linked to koala genserver
-  def canoe_start(state_tokens) do
-
-    wallet_id = Keyword.fetch!(state_tokens, :mqtt_wallet_id)
-    {:ok, _pid} = Tortoise.Supervisor.start_child(
-    client_id: wallet_id,
-    handler: {Koala.Canoe.Handler, []},
-    server:
-      {Tortoise.Transport.SSL,
-        [host: 'getcanoe.io',
-         port: 1885,
-         cacertfile: :certifi.cacertfile(),
-         verify: :verify_none,
-         keyfile: @home <> @key,
-         certfile: @home <> @cert
-        ]},
-    keep_alive: 300000,
-    user_name: Keyword.fetch!(state_tokens, :mqtt_token),
-    password: Keyword.fetch!(state_tokens, :mqtt_token_pass))
-  end
-
   def canoe_sub(state_tokens) do
     wallet_id = Keyword.fetch!(state_tokens, :mqtt_wallet_id)
-    Tortoise.Connection.subscribe(wallet_id, {"wallet/#{wallet_id}/block/#", 0})
+    Tortoise.Connection.subscribe(wallet_id, {"wallet/#{wallet_id}/block/#", 2})
   end
 
   def canoe_pub(state_tokens, accounts) do
       wallet_id = Keyword.fetch!(state_tokens, :mqtt_wallet_id)
 
-    {:ok, msg} = Jason.encode(%{name: "Koala", accounts: ["#{accounts}"], "version": 0.15, wallet: wallet_id})
+    {:ok, msg} = Jason.encode(%{name: "Koala", accounts: ["#{accounts}"], "version": 0.22, wallet: wallet_id})
 
     ##got rid of QoS
     case Tortoise.publish_sync(wallet_id, "wallet/#{wallet_id}/register", msg, qos: 2, timeout: 2000) do
