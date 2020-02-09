@@ -4,8 +4,9 @@ defmodule Koala.Wallet do
   @enforce_keys [:name, :seed]
   @nucleous_wallet "genes"
 
-  @genesis_address "nano_1ernxghpo7kyhc6icokqhy5itbkez11e3u3k5utmepjpx97wsqi6pyq134ir"
+  @genesis_address "nano_1auhz5sbxgyxezaqz5famj8m137snqgnsfxopjiamdf8fzn7zhja4eh5e41b"
   ## aws xrb_1ernxghpo7kyhc6icokqhy5itbkez11e3u3k5utmepjpx97wsqi6pyq134ir
+  ## ver2 - nano_1auhz5sbxgyxezaqz5famj8m137snqgnsfxopjiamdf8fzn7zhja4eh5e41b
 
   # @genesis_address "nano_1qzfp3op48im348qdybmrheu9dogtopj1jyioguq9pyo5i7mkqgo4jaswp4a"
   ## local xrb_1qzfp3op48im348qdybmrheu9dogtopj1jyioguq9pyo5i7mkqgo4jaswp4a
