@@ -462,16 +462,14 @@ defmodule Koala.Wallet do
 
   def handle_info({{Tortoise, name}, _ref, :ok}, state) do
 
-
     if name == state.tokens[:mqtt_wallet_id] do
       Logger.info("+--- Wallet '#{state.name}' handled with care and connected to Canoe. \n\t├── Canoe_wallet_id: " <> name)
       {:noreply, state}
     else
-
-
       {:noreply, state}
     end
-  end
+
+ end
 
   def handle_info({{Tortoise, name}, _ref, {:error, reason}}, state) do
 

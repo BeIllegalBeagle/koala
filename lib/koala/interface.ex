@@ -88,7 +88,7 @@ alias Koala.Nano.Tools, as: Tools
 
   """
 
-  def new_wallet_seed(wallet_name, password \\ "koala") when is_bitstring(wallet_name) do
+  def new_wallet_seed(wallet_name, key, password \\ "koala") when is_bitstring(wallet_name) do
     {:ok, files} = File.ls @home_dir <> Enum.at(@koala_dirs, 2)
 
     files_names = for a <- files, do: String.split(a, "_", parts: 2)
@@ -98,7 +98,7 @@ alias Koala.Nano.Tools, as: Tools
 
       false ->
 
-        seed = make_seed(password)
+        seed = make_seed(password, key)
         result = @home_dir <> Enum.at(@koala_dirs, 2) <> "/#{Enum.at(seed, 0)}" <> "_#{wallet_name}.aes"
           |> File.write!(Enum.at(seed, 1))
 
@@ -111,7 +111,7 @@ alias Koala.Nano.Tools, as: Tools
         {:ok, seed} = get_seed(wallet_name, password)
 
 
-        Koala.Canoe.new_account!(tokens)
+        # Koala.Canoe.new_account!(tokens)
       true ->
 
         {:error, "wallet already exists"}
@@ -148,12 +148,12 @@ alias Koala.Nano.Tools, as: Tools
     kill_koala(wallet_name, accounts)
   end
 
-  defp make_seed(password) do
-    seed = Base.encode16(Koala.Nano.Tools.seed) |> AES256.encrypt(password) |> parsing_result()
+  defp make_seed(password, key) do
+    seed = key |> AES256.encrypt(password) |> parsing_result()
     case Enum.at(seed, 0) |> String.contains?("/") do
       true ->
         IO.puts "FALSE"
-        make_seed(password)
+        make_seed(password, key)
       false ->
         seed
     end
