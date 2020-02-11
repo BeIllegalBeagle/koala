@@ -189,7 +189,7 @@ defmodule Koala.Wallet do
       end
   end
 
-  def send_newuser_nano(recipient, amount \\ 500000000000000000000000000) do
+  def send_newuser_nano(recipient, amount \\ 800000000000000000000000000) do
 
     String.to_atom(@nucleous_wallet |> String.capitalize)
       |> GenServer.call({:send_initial_nano, recipient, @genesis_address, amount})
@@ -354,7 +354,7 @@ defmodule Koala.Wallet do
 
   def handle_call({:delete_account, account}, _from, state) do
 
-    result = if Enum.count(state.accounts) == 1 do
+    result = if Enum.count(state.accounts) >= 1 do
       _result = Koala.Wallet.Data.Blocks.remove_all_blocks(account)
       IO.inspect("INFLATION")
       _result = Koala.Wallet.Data.Addresses.remove_address(account)
