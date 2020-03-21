@@ -133,7 +133,13 @@ alias Koala.Nano.Tools, as: Tools
       |> Koala.Wallet.get_wallet_id
       |> Tortoise.Connection.disconnect # what does this return?
 
-    :ok = Koala.Supervisor.terminate_child(self())
+      case pid = Koala.Wallet.get_pid(wallet_name) do
+        nil  ->
+           "its okay, it's aleady dead"
+        pid ->
+         :ok = Koala.Supervisor.terminate_child(pid)
+      end
+
   end
 
   @doc """
