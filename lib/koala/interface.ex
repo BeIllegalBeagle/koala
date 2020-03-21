@@ -145,7 +145,7 @@ alias Koala.Nano.Tools, as: Tools
   """
 
   def kill_koala(wallet_name) do
-    accounts = Koala.Wallet.accounts(wallet_name)
+    {:ok, accounts} = Koala.Wallet.accounts(wallet_name)
     kill_koala(wallet_name, accounts)
   end
 
