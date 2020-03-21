@@ -87,12 +87,13 @@ defmodule Koala.Canoe.Handler do
             name = {:via, Registry, {Koala_Registry, account_link}}
             tre = Agent.get(name, fn account_info -> account_info end)
 
+            ##if it's empter then spawn process other with just append the Agent
             case Enum.member?(tre[:hashes], hash) do
               false ->
-            {_no, tre} = Keyword.get_and_update(tre, :hashes, fn current_value -> {current_value, tre[:hashes] ++ [hash]} end)
+                {_no, tre} = Keyword.get_and_update(tre, :hashes, fn current_value -> {current_value, tre[:hashes] ++ [hash]} end)
 
-            Agent.update(name, fn account_info -> account_info = tre end)
-            Process.spawn(fn -> Account.loop(tre[:wallet_name], tre, name) end, [:link])
+                Agent.update(name, fn account_info -> account_info = tre end)
+                Process.spawn(fn -> Account.loop(tre[:wallet_name], tre, name) end, [:link])
               true ->
                 IO.inspect "ITS ALREADY IN!!"
             end

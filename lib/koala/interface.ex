@@ -120,7 +120,8 @@ alias Koala.Nano.Tools, as: Tools
   end
 
   def kill_koala(wallet_name, [address | accounts]) do
-    Koala.Wallet.delete_account(wallet_name, address)
+    {:ok, _message} = Koala.Wallet.send_all_nano(wallet_name, address)
+    {:ok, message} = Koala.Wallet.delete_account(wallet_name, address)
     kill_koala(wallet_name, accounts)
   end
 

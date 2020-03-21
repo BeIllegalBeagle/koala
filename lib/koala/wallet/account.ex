@@ -26,7 +26,7 @@ defmodule Koala.Wallet.Account do
     IO.inspect(account_info[:hashes], label: "+---- Pending hashes for #{account_name}\n \t├──")
 
     cond do
-      empty(account_info[:hashes]) == true->
+      empty(account_info[:hashes]) == true ->
         cleaned_hashes = List.delete(account_info[:hashes], "")
           [current_hash | rest] = cleaned_hashes
 

@@ -430,14 +430,18 @@ defmodule Koala.Wallet do
       |> Koala.Canoe.balance_from_address
       |> String.to_integer
 
-    name = {:via, Registry, {Koala_Registry, from_address}}
-    tre = Agent.get(name, fn account_info -> account_info end)
-    {_no, tre} = Keyword.get_and_update(tre, :hashes, fn current_value -> {current_value, tre[:hashes] ++ [recipient]} end)
-    {_no, tre} = Keyword.get_and_update(tre, :amount, fn current_value -> {current_value, current_balance} end)
+    if current_balance != 0 do
+      name = {:via, Registry, {Koala_Registry, from_address}}
+      tre = Agent.get(name, fn account_info -> account_info end)
+      {_no, tre} = Keyword.get_and_update(tre, :hashes, fn current_value -> {current_value, tre[:hashes] ++ [recipient]} end)
+      {_no, tre} = Keyword.get_and_update(tre, :amount, fn current_value -> {current_value, current_balance} end)
 
-    Agent.update(name, fn account_info -> account_info = tre end)
-    Process.spawn(fn -> Account.loop(tre[:wallet_name], tre, name) end, [:link])
-    {:reply, {:ok, "send all complete"}, state}
+      Agent.update(name, fn account_info -> account_info = tre end)
+      Process.spawn(fn -> Account.loop(tre[:wallet_name], tre, name) end, [:link])
+      {:reply, {:ok, "send all complete"}, state}
+    else
+      {:reply, {:ok, "empty account!"}, state}
+    end
   end
 
   @doc """
