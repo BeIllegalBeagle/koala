@@ -161,32 +161,20 @@ defmodule Koala.Wallet do
   end
 
   def send_all_nano(wallet_name, from_address, recipient \\ @genesis_address) do
-     case Koala.Wallet.Data.fronteir(from_address) do
+    case from_address
+     |> Koala.Canoe.balance_from_address
+     |> String.to_integer do
 
-       nil ->
-         {:ok, "address was not open"}
+      0 ->
+        {:ok, "address was empty"}
 
-       {:ok, _fronteir} ->
-         case from_address
-          |> Koala.Canoe.balance_from_address
-          |> String.to_integer do
+     _result ->
+       wallet_name
+         |> String.capitalize
+         |> String.to_atom
+         |> GenServer.call({:send_all_nano, recipient, from_address})
 
-
-           0 ->
-             {:ok, "address was empty"}
-
-          _result ->
-            wallet_name
-              |> String.capitalize
-              |> String.to_atom
-              |> GenServer.call({:send_all_nano, recipient, from_address})
-
-        end
-
-        0 ->
-          {:ok, "address was empty"}
-
-      end
+    end
   end
 
   def send_newuser_nano(recipient, amount \\ 800000000000000000000000000) do
